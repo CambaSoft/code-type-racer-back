@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Cunapesitos - CodeTypeRacer",
   "main": "dist/index.js",
+  "private": true,
   "scripts": {
     "clean": "rimraf dist/*",
     "copy-assets": "ts-node tools/copyAssets",
