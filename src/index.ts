@@ -1,57 +1,36 @@
 import dotenv from "dotenv";
-import Server from "./server";
-import { Request, Response, NextFunction } from "express";
-import Pusher from "pusher";
-
 dotenv.config();
-const port: number = + (process.env.PORT || 3000);
-const server: Server = Server.init(port);
-const pusher = new Pusher({
-    appId: process.env.PUSHER_APP_ID || "APP_ID",
-    key: process.env.PUSHER_APP_KEY || "APP_KEY",
-    secret: process.env.PUSHER_APP_SECRET || "APP_SECRET",
-    cluster: process.env.PUSHER_APP_CLUSTER || "APP_CLUSTER",
-    useTLS: true
-});
-pusher.trigger("my-channel", "my-event", {
-    message: "hello world"
-});
 
-server.app.get("/", (req: Request, res: Response, next: NextFunction) => {
-    const gameCode: string = makeid(5);
-    res.render("index", { gameCode });
-});
+import CONFIG from './config/Config';
+import Activity from './config/Activity';
+import Server from "./server";
+import mongoose from 'mongoose';
 
-server.app.get("/game/:gameCode", (req: Request, res: Response, next: NextFunction) => {
-    const gameCode: string = req.params.gameCode;
-    const appKey = process.env.PUSHER_APP_KEY || "APP_KEY";
-    const appCluster = process.env.PUSHER_APP_CLUSTER || "APP_CLUSTER";
-    res.render("game", { gameCode, appKey, appCluster });
-});
+Activity.info("\nConnecting to db...\n");
 
-server.app.post("/game", (req: Request, res: Response, next: NextFunction) => {
-    const gameCode: string = req.body.gameCode;
-    res.redirect('game/' + gameCode);
-});
+mongoose
+    .connect(
+        CONFIG.MONGO_DB.CONNECTION_STRING,
+        CONFIG.MONGO_DB.OPTIONS
+    )
+    .then(() => {
+        Activity.info("Connected to db.");
+        Activity.info("Starting app...");
+        startApp();
+    })
+    .catch(error => {
+        Activity.error(error);
+        Activity.info('App not started.');
+    });
 
-server.app.post("/pusher/auth", (req: Request, res: Response) => {
-    const socketId = req.body.socket_id;
-    const channel = req.body.channel_name;
-    const auth = pusher.authenticate(socketId, channel);
-    res.send(auth);
-});
-
-const makeid = (length: number): string => {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+const startApp = () => {
+    try {
+        const server: Server = new Server(CONFIG.SERVER.PORT);
+        server.start(() => {
+            Activity.info("App started.");
+            Activity.info(`App listening at ${CONFIG.SERVER.URL}`);
+        });
+    } catch (error) {
+        Activity.error('Error starting app...\n' + error);
     }
-    return result;
 }
-
-server.start(() => {
-    // tslint:disable-next-line:no-console
-    console.log(`server started at http://localhost:${port}`);
-});

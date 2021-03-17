@@ -1,26 +1,38 @@
 import express, { Request, Response, NextFunction, Application } from "express";
-import path from "path";
-import cors from "cors";
 import bodyParser from "body-parser";
+import cors from "cors";
+import roomRouter from './components/room/RoomRouter';
 
-export default class Server {
+class Server {
     public app: Application;
 
     constructor(private port: number) {
         this.app = express();
-        this.app.set("views", path.join(__dirname, "views"));
-        this.app.set("view engine", "ejs");
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: false }));
-        // this.app.use(express.bodyParser());
         this.app.use(cors());
+
+        this.app.use('/api', roomRouter);
+
+        /*
+        this.app.get("/game/:gameCode", (req: Request, res: Response, next: NextFunction) => {
+            const gameCode: string = req.params.gameCode;
+            const appKey = process.env.PUSHER_APP_KEY || "APP_KEY";
+            const appCluster = process.env.PUSHER_APP_CLUSTER || "APP_CLUSTER";
+            res.render("game", { gameCode, appKey, appCluster });
+        });
+
+        this.app.post("/game", (req: Request, res: Response, next: NextFunction) => {
+            const gameCode: string = req.body.gameCode;
+            res.redirect('game/' + gameCode);
+        });
+        */
+
     }
 
     start(callback: () => void) {
         this.app.listen(this.port, callback);
     }
-
-    static init(port: number): Server {
-        return new Server(port);
-    }
 }
+
+export = Server;
