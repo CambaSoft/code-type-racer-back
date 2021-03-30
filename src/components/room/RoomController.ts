@@ -35,6 +35,15 @@ class RoomController extends Controller {
         res.send(auth);
     }
 
+    exists = async (req: Request, res: Response) => {
+        const room = await Room.findOne({ code: req.params.code });
+        if (room) {
+            return this.send(res, 200, "Room exist.", { find: true, room });
+        } else {
+            return this.send(res, 404, "Room not exist.", { find: false });
+        }
+    }
+
     private makeid = (): string => {
         let result = '';
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
