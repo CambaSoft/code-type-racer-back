@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Controller = require('../base/Controller');
 import { Room, IRoomModel } from './RoomModel';
-import Pusher from "pusher";
+import Pusher, { PresenceChannelData } from "pusher";
 
 class RoomController extends Controller {
 
@@ -31,7 +31,14 @@ class RoomController extends Controller {
         });
         const socketId = req.body.socket_id;
         const channel = req.body.channel_name;
-        const auth = pusher.authenticate(socketId, channel);
+        const presenceData: PresenceChannelData = {
+            user_id: this.makeid(),
+            user_info:{
+                username: this.makeid()
+            }
+        };
+        // const auth = pusher.authenticate(socketId, channel);
+        const auth = pusher.authenticate(socketId, channel, presenceData)
         res.send(auth);
     }
 
