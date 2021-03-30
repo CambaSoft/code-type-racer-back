@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import Controller = require('../base/Controller');
-import { Room, IRoomModel } from './RoomModel';
+import { Room } from './RoomModel';
 import Pusher, { PresenceChannelData } from "pusher";
+import { User } from '../user/UserModel';
 
 class RoomController extends Controller {
 
@@ -33,7 +34,7 @@ class RoomController extends Controller {
         const channel = req.body.channel_name;
         const presenceData: PresenceChannelData = {
             user_id: this.makeid(),
-            user_info:{
+            user_info: {
                 username: this.makeid()
             }
         };
@@ -42,13 +43,24 @@ class RoomController extends Controller {
         res.send(auth);
     }
 
-    exists = async (req: Request, res: Response) => {
+    join = async (req: Request, res: Response) => {
         const room = await Room.findOne({ code: req.params.code });
-        if (room) {
-            return this.send(res, 200, "Room exist.", { find: true, room });
-        } else {
+        if (!room) {
             return this.send(res, 404, "Room not exist.", { find: false });
         }
+        const username = req.body.username;
+        const newUser = new User({ username });
+        if (!newUser.username) {
+            return this.send(res, 400, "User without username.", { find: true, newUser });
+        }
+        try {
+            await newUser.save();
+        } catch (err) {
+            return this.send(res, 500, err.message, err);
+        }
+        room.users.push(newUser);
+        await room.save();
+        return this.send(res, 200, "Joined to room.", { find: true, room });
     }
 
     private makeid = (): string => {

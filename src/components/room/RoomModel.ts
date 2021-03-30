@@ -1,6 +1,6 @@
 import { Document, Schema, Model, model } from 'mongoose';
 import { IRoom } from './IRoom';
-import bcrypt from 'bcrypt';
+import { UserSchema } from "../user/UserModel";
 
 export interface IRoomModel extends IRoom, Document {
     getCode(): string;
@@ -12,12 +12,19 @@ export let RoomSchema: Schema = new Schema(
             type: String,
             required: true,
             unique: true
-        }
+        },
+        users: [UserSchema]
     },
     {
         timestamps: true
     }
 );
+
+/*
+RoomSchema.pre('save',()=>{
+    const room: any = this;
+});
+*/
 
 RoomSchema.methods.getCode = (): string => {
     const room: any = this;

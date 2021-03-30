@@ -5,6 +5,6 @@ const roomRoutes = express.Router();
 
 roomRoutes.get('/room/new', RoomController.create);
 roomRoutes.post('/room/auth', RoomController.auth);
-roomRoutes.get('/room/exists/:code', RoomController.exists);
+roomRoutes.get('/room/join/:code', RoomController.join);
 
 export = roomRoutes;
