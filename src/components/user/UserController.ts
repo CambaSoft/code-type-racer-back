@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import Controller = require('../base/Controller');
-import { User, IUserModel } from './UserModel';
+import Controller from "../base/Controller";
+import { User } from './UserModel';
+import Activity from "../../config/Activity";
 
 class UserController extends Controller {
 
@@ -14,6 +15,23 @@ class UserController extends Controller {
             .catch((err: any) => {
                 return this.send(res, 500, err.message, err);
             });
+    }
+
+    update = async (req: Request, res: Response) => {
+        const user = {
+            id: req.body.user.id,
+            username: req.body.user.username
+        };
+        const userFound = await User.findById(user.id);
+        if (!userFound) {
+            return this.send(res, 404, "User not found.", user);
+        }
+        userFound.username = user.username;
+        userFound.save().then(() => {
+            return this.send(res, 200, "User updated.", user);
+        }).catch((err: any) => {
+            return this.send(res, 500, err.message, err);
+        });
     }
 
     /*

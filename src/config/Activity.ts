@@ -1,6 +1,8 @@
+import Config from "./Config";
+
 class Activity {
     log = (message: string) => {
-        if (!process.env.PRODUCTION) {
+        if (!Config.PRODUCTION) {
             // tslint:disable-next-line:no-console
             console.log(message);
         }
